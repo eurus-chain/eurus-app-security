@@ -44,16 +44,17 @@ void main() {
   });
 
   group("Retrieve", () {
-    TestRetrieve testRetrieve =
-        TestRetrieve(retrieve: "testing", customVal1: "cusVal1");
-
+    DateTime testDateTime = DateTime.parse("2021-01-01");
+    TestRetrieve testRetrieve = TestRetrieve(
+      retrieve: "testing",
+      dateTime: testDateTime,
+      customVal1: "cusVal1",
+    );
     test("Check datetime field", () {
-      expect(true, testRetrieve.dateTime != null);
-      expect(true, testRetrieve.dateTime is DateTime);
+      expect(testDateTime, testRetrieve.dateTime);
     });
     test("Check sequence", () {
-      expect(true, testRetrieve.seq != null);
-      expect(true, testRetrieve.seq.contains("-testing"));
+      expect("${testDateTime.millisecondsSinceEpoch}-testing", testRetrieve.seq);
     });
     test("Test sign", () {
       testRetrieve.setSign(keyPairs.privateKey);

@@ -8,10 +8,9 @@ import 'package:pointycastle/export.dart';
 /// Retrieve for api use
 abstract class Retrieve {
   final String retrieve;
+  final DateTime dateTime;
 
-  final DateTime dateTime = DateTime.now();
-
-  Retrieve({@required this.retrieve}) {
+  Retrieve({@required this.retrieve, @required this.dateTime}) {
     _setSeq();
   }
 
