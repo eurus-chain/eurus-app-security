@@ -65,26 +65,27 @@ class _MyAppState extends State<MyApp> {
                   ],
                 ),
                 Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: Text("Private Key"),
-                          ),
-                          Expanded(
-                            flex: 3,
-                            child: TextField(
-                              maxLines: 4,
-                              controller: privateKyTc,
-                              textAlignVertical: TextAlignVertical.center,
-                            ),
-                          ),
-                        ],
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text("Private Key"),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        maxLines: 4,
+                        controller: privateKyTc,
+                        textAlignVertical: TextAlignVertical.center,
                       ),
+                    ),
+                  ],
+                ),
                 Container(
                   padding: EdgeInsets.only(top: 10),
                   child: Column(
                     children: [
-                      Text("Encrypt / Decrypt", style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text("Encrypt / Decrypt",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       Row(
                         children: [
                           Expanded(

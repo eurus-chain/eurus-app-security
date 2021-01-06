@@ -54,7 +54,8 @@ void main() {
       expect(testDateTime, testRetrieve.dateTime);
     });
     test("Check sequence", () {
-      expect("${testDateTime.millisecondsSinceEpoch}-testing", testRetrieve.seq);
+      expect(
+          "${testDateTime.millisecondsSinceEpoch}-testing", testRetrieve.seq);
     });
     test("Test sign", () {
       testRetrieve.setSign(keyPairs.privateKey);
