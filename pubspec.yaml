@@ -1,8 +1,7 @@
 name: app_security_kit
-description: A new flutter plugin project.
+description: Flutter Plugin for application to preform series of security related functions 
 version: 0.0.1
-author:
-homepage:
+homepage: https://www.goldhub.hk
 
 environment:
   sdk: ">=2.7.0 <3.0.0"

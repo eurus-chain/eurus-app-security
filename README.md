@@ -1,15 +1,82 @@
 # app_security_kit
 
-A new flutter plugin project.
+app_security_kit is a plugin for application preform series of security related actions e.g. creating public/pricate key, encode/decode string.
 
-## Getting Started
+## Usage
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+### RSA functions
+```dart
+import 'package:app_security_kit/app_security_kit.dart';
+import 'package:pointycastle/export.dart';
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+RsaKeyHelper rsaHelper = RsaKeyHelper();
 
+/// Generate Key pairs
+AsymmetricKeyPair keyPairs = rsaHelper.generateKeyPair();
+
+/// Convert Keys into String
+String publickeyPem = rsaHelper.encodePublicKeyToPem(keyPairs.publicKey);
+String privatekeyPem = rsaHelper.encodePrivateKeyToPem(keyPairs.privateKey);
+
+/// Convert String back into Keys
+RSAPublicKey pbkeyFromPem = rsaHelper.parsePublicKeyFromPem(publickeyPem);
+RSAPrivateKey pvkeyFromPem = rsaHelper.parsePrivateKeyFromPem(privatekeyPem);
+
+/// Encrypt String
+String encryptedString = rsaHelper.encrypt("Testing String", keyPairs.publicKey);
+
+/// Decrypt String
+String decryptedString = rsaHelper.decrypt(encryptedString, keyPairs.privateKey);
+```
+
+### Retrieve class
+#### Extends from Retrieve
+```dart
+import 'package:app_security_kit/retrieve.dart';
+import 'package:flutter/material.dart';
+
+class TestRetrieve extends Retrieve {
+  final String retrieve;
+  final DateTime dateTime;
+
+  final String customVal1;
+  final String customVal2;
+
+  TestRetrieve({
+    @required this.retrieve,
+    @required this.dateTime,
+    @required this.customVal1,
+    this.customVal2,
+  }) : super(retrieve: retrieve, dateTime: dateTime);
+
+  @override
+  String toString() {
+    return "retrieve=$retrieve&seq=$seq&customVal1=$customVal1${customVal2 != null ? "&customVal2=$customVal2" : ""}";
+  }
+
+  Object toJson() {
+    return {
+      "retrieve": retrieve,
+      "seq": seq,
+      "customVal1": customVal1,
+      "customVal2": customVal2 == null ? '' : customVal2,
+    };
+  }
+}
+```
+
+#### Generate Sign for api retrieve
+```dart
+DateTime testDateTime = DateTime.parse("2021-01-01");
+TestRetrieve testRetrieve = TestRetrieve(
+    retrieve: "testing",
+    dateTime: testDateTime,
+    customVal1: "cusVal1",
+);
+
+/// Using the Private Key to create sign
+testRetrieve.setSign(keyPairs.privateKey);
+```
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
