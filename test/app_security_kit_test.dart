@@ -1,3 +1,4 @@
+import 'package:app_security_kit/password_encrypt_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app_security_kit/app_security_kit.dart';
 import 'package:pointycastle/export.dart';
@@ -60,6 +61,35 @@ void main() {
     test("Test sign", () {
       testRetrieve.setSign(keyPairs.privateKey);
       expect(true, testRetrieve.sign != null);
+    });
+  });
+
+  group("Encryption with Password", () {
+    final String correctPW = '190814';
+    final String wrongPW = '000000';
+    final String dummyString =
+        'f4f666f91a885ce964a7355b878cc7e201e1378ab0b9fb8c22afec10142b760f';
+    final String encryptedString =
+        'NwlRTvULY6lxC4EbUWBarsECkLjep+ljD3u2kgfRO8Gzj2HChzv6CMsrWy25vN4kxg4bZTl711sVp7uUX5vqxlTSctkS/El4D1QLA66hEQw=';
+
+    test("Encrypt String with correct password", () {
+      PasswordEncryptHelper pwHelper =
+          PasswordEncryptHelper(password: correctPW);
+      String result = pwHelper.encryptWPwd(dummyString);
+      expect(result, encryptedString);
+    });
+
+    test("Decrypt String correct password", () {
+      PasswordEncryptHelper pwHelper =
+          PasswordEncryptHelper(password: correctPW);
+      String result = pwHelper.decryptWPed(encryptedString);
+      expect(result, dummyString);
+    });
+
+    test("Decrypt String wrong password", () {
+      PasswordEncryptHelper pwHelper = PasswordEncryptHelper(password: wrongPW);
+      String result = pwHelper.decryptWPed(encryptedString);
+      expect(result, null);
     });
   });
 }

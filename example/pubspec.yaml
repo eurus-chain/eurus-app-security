@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  pointycastle: ^2.0.0
+  pointycastle: ^1.0.2
 
   app_security_kit:
     # When depending on this package from a real application you should use:

@@ -4,6 +4,23 @@ app_security_kit is a plugin for application preform series of security related 
 
 ## Usage
 
+### Password Encryption Function
+```dart
+import 'package:app_security_kit/password_encrypt_helper.dart';
+
+/// Initialize 
+PasswordEncryptHelper pwHelper = PasswordEncryptHelper(password: 'pAsSwOrD0321');
+
+/// Encrypt String with given password
+String encryptedString = pwHelper.encryptWPwd('String to be Encrypt');
+
+/// Decrypt String with given password
+///
+/// return [String] if password is valid
+/// return [null] if password is not valid
+String decryptedString = pwHelper.decryptWPed(encryptedString);
+
+```
 ### RSA functions
 ```dart
 import 'package:app_security_kit/app_security_kit.dart';

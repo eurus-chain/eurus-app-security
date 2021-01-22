@@ -1,6 +1,6 @@
 name: app_security_kit
 description: Flutter Plugin for application to preform series of security related functions 
-version: 0.0.1
+version: 0.0.2
 homepage: https://www.goldhub.hk
 
 environment:
@@ -10,9 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  pointycastle: ^2.0.0
+  pointycastle: ^1.0.2
   asn1lib: ^0.8.1
-
+  convert: ^2.1.1
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
