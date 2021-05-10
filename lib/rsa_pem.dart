@@ -1,95 +1,79 @@
+library rsa_encrypt;
+
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import "package:pointycastle/export.dart";
+
 import "package:asn1lib/asn1lib.dart";
+import 'package:flutter/foundation.dart';
+import 'package:pointycastle/export.dart';
 
-List<int> decodePEM(String pem) {
-  var startsWith = [
-    "-----BEGIN PUBLIC KEY-----",
-    "-----BEGIN PRIVATE KEY-----",
-    "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\nVersion: React-Native-OpenPGP.js 0.1\r\nComment: http://openpgpjs.org\r\n\r\n",
-    "-----BEGIN PGP PRIVATE KEY BLOCK-----\r\nVersion: React-Native-OpenPGP.js 0.1\r\nComment: http://openpgpjs.org\r\n\r\n",
-  ];
-  var endsWith = [
-    "-----END PUBLIC KEY-----",
-    "-----END PRIVATE KEY-----",
-    "-----END PGP PUBLIC KEY BLOCK-----",
-    "-----END PGP PRIVATE KEY BLOCK-----",
-  ];
-  bool isOpenPgp = pem.indexOf('BEGIN PGP') != -1;
-
-  for (var s in startsWith) {
-    if (pem.startsWith(s)) {
-      pem = pem.substring(s.length);
-    }
-  }
-
-  for (var s in endsWith) {
-    if (pem.endsWith(s)) {
-      pem = pem.substring(0, pem.length - s.length);
-    }
-  }
-
-  if (isOpenPgp) {
-    var index = pem.indexOf('\r\n');
-    pem = pem.substring(0, index);
-  }
-
-  pem = pem.replaceAll('\n', '');
-  pem = pem.replaceAll('\r', '');
-
-  return base64.decode(pem);
-}
+/// Helper class to handle RSA key generation, encoding, decoding, encrypting
+/// and decrypting strings
 
 class RsaKeyHelper {
-  AsymmetricKeyPair generateKeyPair() {
-    var keyParams =
-        new RSAKeyGeneratorParameters(BigInt.parse('65537'), 2048, 12);
+  /// Generate a [PublicKey] and [PrivateKey] pair
+  ///
+  /// Returns a [AsymmetricKeyPair] based on the [RSAKeyGenerator] with custom parameters,
+  /// including a [SecureRandom]
+  Future<AsymmetricKeyPair<PublicKey, PrivateKey>> computeRSAKeyPair(
+      SecureRandom secureRandom) async {
+    return await compute(getRsaKeyPair, secureRandom);
+  }
 
-    var secureRandom = new FortunaRandom();
-    var random = new Random.secure();
+  /// Generates a [SecureRandom] to use in computing RSA key pair
+  ///
+  /// Returns [FortunaRandom] to be used in the [AsymmetricKeyPair] generation
+  SecureRandom getSecureRandom() {
+    var secureRandom = FortunaRandom();
+    var random = Random.secure();
     List<int> seeds = [];
     for (int i = 0; i < 32; i++) {
       seeds.add(random.nextInt(255));
     }
     secureRandom.seed(new KeyParameter(new Uint8List.fromList(seeds)));
-
-    var rngParams = new ParametersWithRandom(keyParams, secureRandom);
-    var k = new RSAKeyGenerator();
-    k.init(rngParams);
-
-    return k.generateKeyPair();
+    return secureRandom;
   }
 
-  String encrypt(String plaintext, RSAPublicKey publicKey) {
-    var cipher = new RSAEngine()
-      ..init(true, new PublicKeyParameter<RSAPublicKey>(publicKey));
-    var cipherText =
-        cipher.process(new Uint8List.fromList(plaintext.codeUnits));
-
-    return new String.fromCharCodes(cipherText);
-  }
-
-  String decrypt(String ciphertext, RSAPrivateKey privateKey) {
-    var cipher = new RSAEngine()
-      ..init(false, new PrivateKeyParameter<RSAPrivateKey>(privateKey));
-    var decrypted =
-        cipher.process(new Uint8List.fromList(ciphertext.codeUnits));
-
-    return new String.fromCharCodes(decrypted);
-  }
-
-  parsePublicKeyFromPem(pemString) {
+  /// Decode Public key from PEM Format
+  ///
+  /// Given a base64 encoded PEM [String] with correct headers and footers, return a
+  /// [RSAPublicKey]
+  ///
+  /// *PKCS1*
+  /// RSAPublicKey ::= SEQUENCE {
+  ///    modulus           INTEGER,  -- n
+  ///    publicExponent    INTEGER   -- e
+  /// }
+  ///
+  /// *PKCS8*
+  /// PublicKeyInfo ::= SEQUENCE {
+  ///   algorithm       AlgorithmIdentifier,
+  ///   PublicKey       BIT STRING
+  /// }
+  ///
+  /// AlgorithmIdentifier ::= SEQUENCE {
+  ///   algorithm       OBJECT IDENTIFIER,
+  ///   parameters      ANY DEFINED BY algorithm OPTIONAL
+  /// }
+  RSAPublicKey parsePublicKeyFromPem(pemString) {
     List<int> publicKeyDER = decodePEM(pemString);
-    var asn1Parser = new ASN1Parser(publicKeyDER);
-    var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
-    var publicKeyBitString = topLevelSeq.elements[1];
+    ASN1Parser asn1Parser = new ASN1Parser(publicKeyDER as Uint8List);
+    ASN1Sequence topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
 
-    var publicKeyAsn = new ASN1Parser(publicKeyBitString.contentBytes());
-    ASN1Sequence publicKeySeq = publicKeyAsn.nextObject();
-    var modulus = publicKeySeq.elements[0] as ASN1Integer;
-    var exponent = publicKeySeq.elements[1] as ASN1Integer;
+    var modulus, exponent;
+    // Depending on the first element type, we either have PKCS1 or 2
+    if (topLevelSeq.elements[0].runtimeType == ASN1Integer) {
+      modulus = topLevelSeq.elements[0] as ASN1Integer;
+      exponent = topLevelSeq.elements[1] as ASN1Integer;
+    } else {
+      var publicKeyBitString = topLevelSeq.elements[1];
+
+      var publicKeyAsn = new ASN1Parser(publicKeyBitString.contentBytes());
+      ASN1Sequence publicKeySeq = publicKeyAsn.nextObject() as ASN1Sequence;
+      modulus = publicKeySeq.elements[0] as ASN1Integer;
+      exponent = publicKeySeq.elements[1] as ASN1Integer;
+    }
 
     RSAPublicKey rsaPublicKey =
         RSAPublicKey(modulus.valueAsBigInteger, exponent.valueAsBigInteger);
@@ -97,26 +81,50 @@ class RsaKeyHelper {
     return rsaPublicKey;
   }
 
-  parsePrivateKeyFromPem(pemString) {
+  /// Sign plain text with Private Key
+  ///
+  /// Given a plain text [String] and a [RSAPrivateKey], decrypt the text using
+  /// a [RSAEngine] cipher
+  String sign(String plainText, RSAPrivateKey privateKey) {
+    var signer = RSASigner(SHA256Digest(), "0609608648016503040201");
+    signer.init(true, PrivateKeyParameter<RSAPrivateKey>(privateKey));
+    return base64Encode(
+        signer.generateSignature(createUint8ListFromString(plainText)).bytes);
+  }
+
+  /// Creates a [Uint8List] from a string to be signed
+  Uint8List createUint8ListFromString(String s) {
+    var codec = Utf8Codec(allowMalformed: true);
+    return Uint8List.fromList(codec.encode(s));
+  }
+
+  /// Decode Private key from PEM Format
+  ///
+  /// Given a base64 encoded PEM [String] with correct headers and footers, return a
+  /// [RSAPrivateKey]
+  RSAPrivateKey parsePrivateKeyFromPem(pemString) {
     List<int> privateKeyDER = decodePEM(pemString);
-    var asn1Parser = new ASN1Parser(privateKeyDER);
+    var asn1Parser = new ASN1Parser(privateKeyDER as Uint8List);
     var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
-    // var version = topLevelSeq.elements[0];
-    // var algorithm = topLevelSeq.elements[1];
-    var privateKey = topLevelSeq.elements[2];
 
-    asn1Parser = new ASN1Parser(privateKey.contentBytes());
-    var pkSeq = asn1Parser.nextObject() as ASN1Sequence;
+    var modulus, privateExponent, p, q;
+    //Use either PKCS1 or PKCS8 depending on the number of ELEMENTS
+    if (topLevelSeq.elements.length == 3) {
+      var privateKey = topLevelSeq.elements[2];
 
-    // version = pkSeq.elements[0];
-    var modulus = pkSeq.elements[1] as ASN1Integer;
-    // var publicExponent = pkSeq.elements[2] as ASN1Integer;
-    var privateExponent = pkSeq.elements[3] as ASN1Integer;
-    var p = pkSeq.elements[4] as ASN1Integer;
-    var q = pkSeq.elements[5] as ASN1Integer;
-    // var exp1 = pkSeq.elements[6] as ASN1Integer;
-    // var exp2 = pkSeq.elements[7] as ASN1Integer;
-    // var co = pkSeq.elements[8] as ASN1Integer;
+      asn1Parser = new ASN1Parser(privateKey.contentBytes());
+      var pkSeq = asn1Parser.nextObject() as ASN1Sequence;
+
+      modulus = pkSeq.elements[1] as ASN1Integer;
+      privateExponent = pkSeq.elements[3] as ASN1Integer;
+      p = pkSeq.elements[4] as ASN1Integer;
+      q = pkSeq.elements[5] as ASN1Integer;
+    } else {
+      modulus = topLevelSeq.elements[1] as ASN1Integer;
+      privateExponent = topLevelSeq.elements[3] as ASN1Integer;
+      p = topLevelSeq.elements[4] as ASN1Integer;
+      q = topLevelSeq.elements[5] as ASN1Integer;
+    }
 
     RSAPrivateKey rsaPrivateKey = RSAPrivateKey(
         modulus.valueAsBigInteger,
@@ -127,43 +135,64 @@ class RsaKeyHelper {
     return rsaPrivateKey;
   }
 
-  encodePublicKeyToPem(RSAPublicKey publicKey) {
-    var algorithmSeq = new ASN1Sequence();
-    var algorithmAsn1Obj = new ASN1Object.fromBytes(Uint8List.fromList(
-        [0x6, 0x9, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0xd, 0x1, 0x1, 0x1]));
-    var paramsAsn1Obj =
-        new ASN1Object.fromBytes(Uint8List.fromList([0x5, 0x0]));
-    algorithmSeq.add(algorithmAsn1Obj);
-    algorithmSeq.add(paramsAsn1Obj);
-
-    var publicKeySeq = new ASN1Sequence();
-    publicKeySeq.add(ASN1Integer(publicKey.modulus));
-    publicKeySeq.add(ASN1Integer(publicKey.exponent));
-    var publicKeySeqBitString =
-        new ASN1BitString(Uint8List.fromList(publicKeySeq.encodedBytes));
-
-    var topLevelSeq = new ASN1Sequence();
-    topLevelSeq.add(algorithmSeq);
-    topLevelSeq.add(publicKeySeqBitString);
-    var dataBase64 = base64.encode(topLevelSeq.encodedBytes);
-
-    return """-----BEGIN PUBLIC KEY-----\r\n$dataBase64\r\n-----END PUBLIC KEY-----""";
+  List<int> decodePEM(String pem) {
+    return base64.decode(removePemHeaderAndFooter(pem));
   }
 
-  encodePrivateKeyToPem(RSAPrivateKey privateKey) {
+  String removePemHeaderAndFooter(String pem) {
+    var startsWith = [
+      "-----BEGIN PUBLIC KEY-----",
+      "-----BEGIN RSA PRIVATE KEY-----",
+      "-----BEGIN RSA PUBLIC KEY-----",
+      "-----BEGIN PRIVATE KEY-----",
+      "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\nVersion: React-Native-OpenPGP.js 0.1\r\nComment: http://openpgpjs.org\r\n\r\n",
+      "-----BEGIN PGP PRIVATE KEY BLOCK-----\r\nVersion: React-Native-OpenPGP.js 0.1\r\nComment: http://openpgpjs.org\r\n\r\n",
+    ];
+    var endsWith = [
+      "-----END PUBLIC KEY-----",
+      "-----END PRIVATE KEY-----",
+      "-----END RSA PRIVATE KEY-----",
+      "-----END RSA PUBLIC KEY-----",
+      "-----END PGP PUBLIC KEY BLOCK-----",
+      "-----END PGP PRIVATE KEY BLOCK-----",
+    ];
+    bool isOpenPgp = pem.indexOf('BEGIN PGP') != -1;
+
+    pem = pem.replaceAll(' ', '');
+    pem = pem.replaceAll('\n', '');
+    pem = pem.replaceAll('\r', '');
+
+    for (var s in startsWith) {
+      s = s.replaceAll(' ', '');
+      if (pem.startsWith(s)) {
+        pem = pem.substring(s.length);
+      }
+    }
+
+    for (var s in endsWith) {
+      s = s.replaceAll(' ', '');
+      if (pem.endsWith(s)) {
+        pem = pem.substring(0, pem.length - s.length);
+      }
+    }
+
+    if (isOpenPgp) {
+      var index = pem.indexOf('\r\n');
+      pem = pem.substring(0, index);
+    }
+
+    return pem;
+  }
+
+  /// Encode Private key to PEM Format
+  ///
+  /// Given [RSAPrivateKey] returns a base64 encoded [String] with standard PEM headers and footers
+  String encodePrivateKeyToPemPKCS1(RSAPrivateKey privateKey) {
+    var topLevel = new ASN1Sequence();
+
     var version = ASN1Integer(BigInt.from(0));
-
-    var algorithmSeq = new ASN1Sequence();
-    var algorithmAsn1Obj = new ASN1Object.fromBytes(Uint8List.fromList(
-        [0x6, 0x9, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0xd, 0x1, 0x1, 0x1]));
-    var paramsAsn1Obj =
-        new ASN1Object.fromBytes(Uint8List.fromList([0x5, 0x0]));
-    algorithmSeq.add(algorithmAsn1Obj);
-    algorithmSeq.add(paramsAsn1Obj);
-
-    var privateKeySeq = new ASN1Sequence();
     var modulus = ASN1Integer(privateKey.n);
-    var publicExponent = ASN1Integer(BigInt.parse('65537'));
+    var publicExponent = ASN1Integer(privateKey.exponent);
     var privateExponent = ASN1Integer(privateKey.exponent);
     var p = ASN1Integer(privateKey.p);
     var q = ASN1Integer(privateKey.q);
@@ -174,24 +203,63 @@ class RsaKeyHelper {
     var iQ = privateKey.q.modInverse(privateKey.p);
     var co = ASN1Integer(iQ);
 
-    privateKeySeq.add(version);
-    privateKeySeq.add(modulus);
-    privateKeySeq.add(publicExponent);
-    privateKeySeq.add(privateExponent);
-    privateKeySeq.add(p);
-    privateKeySeq.add(q);
-    privateKeySeq.add(exp1);
-    privateKeySeq.add(exp2);
-    privateKeySeq.add(co);
-    var publicKeySeqOctetString =
-        new ASN1OctetString(Uint8List.fromList(privateKeySeq.encodedBytes));
+    topLevel.add(version);
+    topLevel.add(modulus);
+    topLevel.add(publicExponent);
+    topLevel.add(privateExponent);
+    topLevel.add(p);
+    topLevel.add(q);
+    topLevel.add(exp1);
+    topLevel.add(exp2);
+    topLevel.add(co);
 
-    var topLevelSeq = new ASN1Sequence();
-    topLevelSeq.add(version);
-    topLevelSeq.add(algorithmSeq);
-    topLevelSeq.add(publicKeySeqOctetString);
-    var dataBase64 = base64.encode(topLevelSeq.encodedBytes);
+    var dataBase64 = base64.encode(topLevel.encodedBytes);
 
-    return """-----BEGIN PRIVATE KEY-----\r\n$dataBase64\r\n-----END PRIVATE KEY-----""";
+    return """-----BEGIN RSA PRIVATE KEY-----\r\n$dataBase64\r\n-----END RSA PRIVATE KEY-----""";
   }
+
+  /// Encode Public key to PEM Format
+  ///
+  /// Given [RSAPublicKey] returns a base64 encoded [String] with standard PEM headers and footers
+  String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
+    var topLevel = new ASN1Sequence();
+
+    topLevel.add(ASN1Integer(publicKey.modulus));
+    topLevel.add(ASN1Integer(publicKey.exponent));
+
+    var dataBase64 = base64.encode(topLevel.encodedBytes);
+    return """-----BEGIN RSA PUBLIC KEY-----\r\n$dataBase64\r\n-----END RSA PUBLIC KEY-----""";
+  }
+}
+
+/// Encrypting String
+String encrypt(String plaintext, RSAPublicKey publicKey) {
+  var cipher = new OAEPEncoding(RSAEngine())
+    ..init(true, new PublicKeyParameter<RSAPublicKey>(publicKey));
+  var cipherText = cipher.process(new Uint8List.fromList(plaintext.codeUnits));
+
+  return new String.fromCharCodes(cipherText);
+}
+
+/// Decrypting String
+String decrypt(String ciphertext, RSAPrivateKey privateKey) {
+  var cipher = new OAEPEncoding(RSAEngine())
+    ..init(false, new PrivateKeyParameter<RSAPrivateKey>(privateKey));
+  var decrypted = cipher.process(new Uint8List.fromList(ciphertext.codeUnits));
+
+  return new String.fromCharCodes(decrypted);
+}
+
+/// Generate a [PublicKey] and [PrivateKey] pair
+///
+/// Returns a [AsymmetricKeyPair] based on the [RSAKeyGenerator] with custom parameters,
+/// including a [SecureRandom]
+AsymmetricKeyPair<PublicKey, PrivateKey> getRsaKeyPair(
+    SecureRandom secureRandom) {
+  /// Set BitStrength to [1024, 2048 or 4096]
+  var rsapars = new RSAKeyGeneratorParameters(BigInt.from(65537), 2048, 5);
+  var params = new ParametersWithRandom(rsapars, secureRandom);
+  var keyGenerator = new RSAKeyGenerator();
+  keyGenerator.init(params);
+  return keyGenerator.generateKeyPair();
 }

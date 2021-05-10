@@ -1,3 +1,4 @@
+import 'package:app_security_kit_example/ra.dart';
 import 'package:flutter/material.dart';
 
 import 'rsa.dart';
@@ -22,19 +23,20 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           appBar: AppBar(
             title: const Text('Plugin example app'),
             bottom: TabBar(
               tabs: [
-                Padding(padding: EdgeInsets.all(15), child: Text('Password')),
+                Padding(padding: EdgeInsets.all(15), child: Text('RA')),
                 Padding(padding: EdgeInsets.all(15), child: Text('RSA')),
+                Padding(padding: EdgeInsets.all(15), child: Text('Password')),
               ],
             ),
           ),
           body: TabBarView(
-            children: [PWDemo(), RSADemo()],
+            children: [RADemo(), RSADemo(), PWDemo()],
           ),
         ),
       ),
