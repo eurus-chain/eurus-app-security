@@ -69,7 +69,8 @@ class RsaKeyHelper {
     } else {
       var publicKeyBitString = topLevelSeq.elements[1];
 
-      var publicKeyAsn = new ASN1Parser(publicKeyBitString.contentBytes());
+      var publicKeyAsn = new ASN1Parser(
+          Uint8List.fromList(publicKeyBitString.contentBytes() ?? []));
       ASN1Sequence publicKeySeq = publicKeyAsn.nextObject() as ASN1Sequence;
       modulus = publicKeySeq.elements[0] as ASN1Integer;
       exponent = publicKeySeq.elements[1] as ASN1Integer;
@@ -104,7 +105,7 @@ class RsaKeyHelper {
   /// [RSAPrivateKey]
   RSAPrivateKey parsePrivateKeyFromPem(pemString) {
     List<int> privateKeyDER = decodePEM(pemString);
-    var asn1Parser = new ASN1Parser(privateKeyDER as Uint8List);
+    var asn1Parser = new ASN1Parser(Uint8List.fromList(privateKeyDER));
     var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
 
     var modulus, privateExponent, p, q;
@@ -112,7 +113,8 @@ class RsaKeyHelper {
     if (topLevelSeq.elements.length == 3) {
       var privateKey = topLevelSeq.elements[2];
 
-      asn1Parser = new ASN1Parser(privateKey.contentBytes());
+      asn1Parser =
+          new ASN1Parser(Uint8List.fromList(privateKey.contentBytes() ?? []));
       var pkSeq = asn1Parser.nextObject() as ASN1Sequence;
 
       modulus = pkSeq.elements[1] as ASN1Integer;
@@ -190,28 +192,33 @@ class RsaKeyHelper {
   String encodePrivateKeyToPemPKCS1(RSAPrivateKey privateKey) {
     var topLevel = new ASN1Sequence();
 
-    var version = ASN1Integer(BigInt.from(0));
-    var modulus = ASN1Integer(privateKey.n);
-    var publicExponent = ASN1Integer(privateKey.exponent);
-    var privateExponent = ASN1Integer(privateKey.exponent);
-    var p = ASN1Integer(privateKey.p);
-    var q = ASN1Integer(privateKey.q);
-    var dP = privateKey.exponent % (privateKey.p - BigInt.from(1));
-    var exp1 = ASN1Integer(dP);
-    var dQ = privateKey.exponent % (privateKey.q - BigInt.from(1));
-    var exp2 = ASN1Integer(dQ);
-    var iQ = privateKey.q.modInverse(privateKey.p);
-    var co = ASN1Integer(iQ);
+    if (privateKey.n != null &&
+        privateKey.exponent != null &&
+        privateKey.p != null &&
+        privateKey.q != null) {
+      var version = ASN1Integer(BigInt.from(0));
+      var modulus = ASN1Integer(privateKey.n!);
+      var publicExponent = ASN1Integer(privateKey.exponent!);
+      var privateExponent = ASN1Integer(privateKey.exponent!);
+      var p = ASN1Integer(privateKey.p!);
+      var q = ASN1Integer(privateKey.q!);
+      var dP = privateKey.exponent! % (privateKey.p! - BigInt.from(1));
+      var exp1 = ASN1Integer(dP);
+      var dQ = privateKey.exponent! % (privateKey.q! - BigInt.from(1));
+      var exp2 = ASN1Integer(dQ);
+      var iQ = privateKey.q!.modInverse(privateKey.p!);
+      var co = ASN1Integer(iQ);
 
-    topLevel.add(version);
-    topLevel.add(modulus);
-    topLevel.add(publicExponent);
-    topLevel.add(privateExponent);
-    topLevel.add(p);
-    topLevel.add(q);
-    topLevel.add(exp1);
-    topLevel.add(exp2);
-    topLevel.add(co);
+      topLevel.add(version);
+      topLevel.add(modulus);
+      topLevel.add(publicExponent);
+      topLevel.add(privateExponent);
+      topLevel.add(p);
+      topLevel.add(q);
+      topLevel.add(exp1);
+      topLevel.add(exp2);
+      topLevel.add(co);
+    }
 
     var dataBase64 = base64.encode(topLevel.encodedBytes);
 
@@ -224,8 +231,10 @@ class RsaKeyHelper {
   String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
     var topLevel = new ASN1Sequence();
 
-    topLevel.add(ASN1Integer(publicKey.modulus));
-    topLevel.add(ASN1Integer(publicKey.exponent));
+    if (publicKey.modulus != null && publicKey.exponent != null) {
+      topLevel.add(ASN1Integer(publicKey.modulus!));
+      topLevel.add(ASN1Integer(publicKey.exponent!));
+    }
 
     var dataBase64 = base64.encode(topLevel.encodedBytes);
     return """-----BEGIN RSA PUBLIC KEY-----\r\n$dataBase64\r\n-----END RSA PUBLIC KEY-----""";

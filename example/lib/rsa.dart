@@ -1,17 +1,17 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:app_security_kit/app_security_kit.dart';
 import 'package:flutter/material.dart';
-import 'package:pointycastle/export.dart';
+import 'package:flutter/widgets.dart';
+import 'package:pointycastle/pointycastle.dart';
 
 class RSADemo extends StatefulWidget {
+  const RSADemo({Key? key}) : super(key: key);
+
   @override
   _RSADemoState createState() => _RSADemoState();
 }
 
 class _RSADemoState extends State<RSADemo> {
-  AsymmetricKeyPair keyPairs;
+  AsymmetricKeyPair? keyPairs;
 
   final TextEditingController publicKyTc = TextEditingController();
   final TextEditingController privateKyTc = TextEditingController();
@@ -42,7 +42,7 @@ class _RSADemoState extends State<RSADemo> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
               textAlign: TextAlign.start,
             ),
-            FlatButton(
+            TextButton(
               onPressed: genKeyParis,
               child: Text("Generate Key Pair"),
             ),
@@ -92,7 +92,7 @@ class _RSADemoState extends State<RSADemo> {
                     children: [
                       Expanded(
                         flex: 1,
-                        child: FlatButton(
+                        child: TextButton(
                           onPressed: encryptString,
                           child: Text(
                             "Click to Encrypt String",
@@ -115,7 +115,7 @@ class _RSADemoState extends State<RSADemo> {
                       ),
                     ],
                   ),
-                  FlatButton(
+                  TextButton(
                     onPressed: () {
                       txtToDecrypt.text = txtEncrypted.text;
                     },
@@ -125,7 +125,7 @@ class _RSADemoState extends State<RSADemo> {
                     children: [
                       Expanded(
                         flex: 1,
-                        child: FlatButton(
+                        child: TextButton(
                           onPressed: decryptString,
                           child: Text(
                             "Click to Decrypt String",
@@ -158,7 +158,8 @@ class _RSADemoState extends State<RSADemo> {
   }
 
   Future<void> genKeyParis() async {
-    AsymmetricKeyPair keys = await RsaKeyHelper().computeRSAKeyPair(RsaKeyHelper().getSecureRandom());
+    AsymmetricKeyPair keys = await RsaKeyHelper()
+        .computeRSAKeyPair(RsaKeyHelper().getSecureRandom());
 
     setState(() {
       keyPairs = keys;
@@ -170,21 +171,25 @@ class _RSADemoState extends State<RSADemo> {
 
   void getStringPublickey() {
     if (keyPairs == null) return;
-    publicKyTc.text = RsaKeyHelper().encodePublicKeyToPemPKCS1(keyPairs.publicKey);
+    publicKyTc.text = RsaKeyHelper()
+        .encodePublicKeyToPemPKCS1(keyPairs!.publicKey as RSAPublicKey);
   }
 
   void getStringPrivatekey() {
     if (keyPairs == null) return;
-    privateKyTc.text = RsaKeyHelper().encodePrivateKeyToPemPKCS1(keyPairs.privateKey);
+    privateKyTc.text = RsaKeyHelper()
+        .encodePrivateKeyToPemPKCS1(keyPairs!.privateKey as RSAPrivateKey);
   }
 
   void encryptString() {
     if (txtToEncrypt.text == '') return;
-    txtEncrypted.text = encrypt(txtToEncrypt.text, keyPairs.publicKey);
+    txtEncrypted.text =
+        encrypt(txtToEncrypt.text, keyPairs!.publicKey as RSAPublicKey);
   }
 
   void decryptString() {
     if (txtToDecrypt.text == '') return;
-    txtDecrypted.text = decrypt(txtToDecrypt.text, keyPairs.privateKey);
+    txtDecrypted.text =
+        decrypt(txtToDecrypt.text, keyPairs!.privateKey as RSAPrivateKey);
   }
 }

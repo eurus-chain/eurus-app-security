@@ -1,23 +1,22 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
-import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/export.dart';
+import 'package:pointycastle/pointycastle.dart';
 
 /// Retrieve for api use
 abstract class Retrieve {
   final String retrieve;
   final DateTime dateTime;
 
-  Retrieve({@required this.retrieve, @required this.dateTime}) {
+  Retrieve({required this.retrieve, required this.dateTime}) {
     _setSeq();
   }
 
-  String _sign;
+  late String _sign;
   String get sign => _sign;
 
-  String _seq;
+  late String _seq;
   String get seq => _seq;
 
   /// Create sign for api with privatekey

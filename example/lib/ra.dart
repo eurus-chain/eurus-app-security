@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
 import 'package:app_security_kit/app_security_kit.dart';
 import 'package:flutter/material.dart';
 
@@ -16,8 +13,10 @@ class _RADemoState extends State<RADemo> {
 
   @override
   void initState() {
-    privateKyTc.text = 'MIICXAIBAAKBgQDusPc9qEGYrkE/eYAKuuR3q4FFQGnQ6ubIPAnzil6H/FTlU6AaNH+Rz9xis5SNQq7t+YtaG7O2mUNg6zOZnUg+/9jmOJjvFo7TWz+yGH5EeLuVsZiCUOWrtwtZgyvuPfGzWagVnmcDY1yqLik03w8MDHOZNLaGi693yHZRz9qIkQIDAQABAoGAMl657hMBtLyhHEoBkUIbUH2qy/hp3CKWDQ9Ockxy4nOHXtWk5aLKgPTCZznKUX0O+T0+AQfzhscVBvDbdMFSK0Dx71B8LdnmLkvyUGu9nVTTuGgelTF0WQCf86Rd6LknGwZQAK6RNzeQZEq6XG/yJOuHWIPFsy9YHY2+yNyQkVkCQQD3IsLc7OmsfuB/UvKXsUsCoajhqOG7poh3tAY+YJMlWyToDGOXw1JSCTph6XbzYmnk/kRyhioxY78r2R5IatZ3AkEA90CqcJkiXP5JOgVSvAiYa9O14EfvXOjCYfAklFLekyru5OjUJhJ2YACykB1m4O1w7BvZwRMFvci5bca6QqlzNwJAI45fxNNdJ1E10XvIpWR/q0hA+P6IQ6xJFBfVkiHo6cX8QFqP9aTHckAbozyovYmaPLUMegGtjl+QgKmDPt4ILwJACdPzMmiT2hhtdrXxdPHuhRK0Pwb897d0yonOGms016q0Njse+6huNiCw+FOC3Fvzyh7NSARmjQWmgTuN+cpcfwJBAM58p/u2zv1KDezdD4ynn+GGvhPEvbdW7b0uXnQIZYRaTUzPVLMyteTW8NskqS97mAw4uD7RpDeUH6i0qzY2zxc=';
-    raEncryptedTc.text = 'rLoBALejPtLDGAfSpRx/Lzj1IDYnuEiqRRULAahJAZ5Opuz87u4YKbFmKxPlbWTft+b/FdDPKzGif6bgZU5Z4femjaOlQSoICR9ecXzQpWx15Oq11vnIlms57Dr72zFCSgtns9Pj3iXlUHTDjzd2Y+RL/wfgS6F5etnJJrFxqbKKKX5kj2ByCFSbEdlKFuGzIHqXNnIa0vjpZH2cVcVOnWCzsxo=';
+    privateKyTc.text =
+        'MIICXAIBAAKBgQDusPc9qEGYrkE/eYAKuuR3q4FFQGnQ6ubIPAnzil6H/FTlU6AaNH+Rz9xis5SNQq7t+YtaG7O2mUNg6zOZnUg+/9jmOJjvFo7TWz+yGH5EeLuVsZiCUOWrtwtZgyvuPfGzWagVnmcDY1yqLik03w8MDHOZNLaGi693yHZRz9qIkQIDAQABAoGAMl657hMBtLyhHEoBkUIbUH2qy/hp3CKWDQ9Ockxy4nOHXtWk5aLKgPTCZznKUX0O+T0+AQfzhscVBvDbdMFSK0Dx71B8LdnmLkvyUGu9nVTTuGgelTF0WQCf86Rd6LknGwZQAK6RNzeQZEq6XG/yJOuHWIPFsy9YHY2+yNyQkVkCQQD3IsLc7OmsfuB/UvKXsUsCoajhqOG7poh3tAY+YJMlWyToDGOXw1JSCTph6XbzYmnk/kRyhioxY78r2R5IatZ3AkEA90CqcJkiXP5JOgVSvAiYa9O14EfvXOjCYfAklFLekyru5OjUJhJ2YACykB1m4O1w7BvZwRMFvci5bca6QqlzNwJAI45fxNNdJ1E10XvIpWR/q0hA+P6IQ6xJFBfVkiHo6cX8QFqP9aTHckAbozyovYmaPLUMegGtjl+QgKmDPt4ILwJACdPzMmiT2hhtdrXxdPHuhRK0Pwb897d0yonOGms016q0Njse+6huNiCw+FOC3Fvzyh7NSARmjQWmgTuN+cpcfwJBAM58p/u2zv1KDezdD4ynn+GGvhPEvbdW7b0uXnQIZYRaTUzPVLMyteTW8NskqS97mAw4uD7RpDeUH6i0qzY2zxc=';
+    raEncryptedTc.text =
+        'rLoBALejPtLDGAfSpRx/Lzj1IDYnuEiqRRULAahJAZ5Opuz87u4YKbFmKxPlbWTft+b/FdDPKzGif6bgZU5Z4femjaOlQSoICR9ecXzQpWx15Oq11vnIlms57Dr72zFCSgtns9Pj3iXlUHTDjzd2Y+RL/wfgS6F5etnJJrFxqbKKKX5kj2ByCFSbEdlKFuGzIHqXNnIa0vjpZH2cVcVOnWCzsxo=';
     super.initState();
   }
 
@@ -66,13 +65,18 @@ class _RADemoState extends State<RADemo> {
                 ),
               ],
             ),
-            FlatButton(
-              onPressed: privateKyTc.text.length > 0 && raEncryptedTc.text.length > 0 ? () {
-                final decode = DecryptionHelper(privateKey: privateKyTc.text);
-                String finalDecoded = decode.decryptRAEncryption(raEncryptedTc.text);
+            TextButton(
+              onPressed:
+                  privateKyTc.text.length > 0 && raEncryptedTc.text.length > 0
+                      ? () {
+                          final decode =
+                              DecryptionHelper(privateKey: privateKyTc.text);
+                          String finalDecoded =
+                              decode.decryptRAEncryption(raEncryptedTc.text);
 
-                resultTc.text = finalDecoded;
-              } : null,
+                          resultTc.text = finalDecoded;
+                        }
+                      : null,
               child: Text("Decrypte text"),
             ),
             Row(

@@ -2,18 +2,19 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:app_security_kit/rsa_pem.dart';
-import 'package:flutter/material.dart';
 import 'package:pointycastle/export.dart';
+import 'package:pointycastle/pointycastle.dart';
 
 class DecryptionHelper {
   /// Initialize helper with private key
-  DecryptionHelper({@required this.privateKey});
+  DecryptionHelper({required this.privateKey});
 
   final String privateKey;
-  RSAPrivateKey get _privateKey => RsaKeyHelper().parsePrivateKeyFromPem(privateKey);
+  RSAPrivateKey get _privateKey =>
+      RsaKeyHelper().parsePrivateKeyFromPem(privateKey);
 
   /// RA Decryption Flow
-  /// 
+  ///
   /// 1. Initialize Helper with private key
   /// 2. Decode incoming string using base64
   /// 3. Splite bytes into three parts
@@ -32,14 +33,14 @@ class DecryptionHelper {
     String aesKey = _decryptRSACiphertext(rsaEncryptedAesKey, _privateKey);
     // Convert AES Key to bytes
     Uint8List aesKeyByte = base64.decode(aesKey);
-    
+
     // Decrypte content by AES Key
     Uint8List decryptedBytes = _decryptAESCipher(aesEncryptedVal, aesKeyByte);
 
     return String.fromCharCodes(decryptedBytes);
   }
 
-  /// Decode encryped RSA Uint8List 
+  /// Decode encryped RSA Uint8List
   String _decryptRSACiphertext(Uint8List ciphertextBytes, RSAPrivateKey pk) {
     String stringToDecode = String.fromCharCodes(ciphertextBytes);
 

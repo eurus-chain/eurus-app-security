@@ -1,17 +1,16 @@
 import 'package:app_security_kit/retrieve.dart';
-import 'package:flutter/material.dart';
 
 class TestRetrieve extends Retrieve {
   final String retrieve;
   final DateTime dateTime;
 
   final String customVal1;
-  final String customVal2;
+  final String? customVal2;
 
   TestRetrieve({
-    @required this.retrieve,
-    @required this.dateTime,
-    @required this.customVal1,
+    required this.retrieve,
+    required this.dateTime,
+    required this.customVal1,
     this.customVal2,
   }) : super(retrieve: retrieve, dateTime: dateTime);
 

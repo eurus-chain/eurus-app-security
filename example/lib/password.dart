@@ -56,10 +56,10 @@ class _PWDemoState extends State<PWDemo> {
                 )
               ],
             ),
-            FlatButton(
+            TextButton(
               onPressed: () {
                 if (eTc.text == '' || ebTc.text == '') return;
-                var pwHelper = PasswordEncryptHelper(password: eTc.text);
+                PasswordEncryptHelper? pwHelper = PasswordEncryptHelper(password: eTc.text);
                 eaTc.text = pwHelper.encryptWPwd(ebTc.text);
                 pwHelper = null;
               },
@@ -83,7 +83,7 @@ class _PWDemoState extends State<PWDemo> {
             ),
             Padding(
               padding: EdgeInsets.all(10),
-              child: FlatButton(
+              child: TextButton(
                 onPressed: () {
                   if (eaTc.text == '') return;
                   dbTc.text = eaTc.text;
@@ -124,10 +124,10 @@ class _PWDemoState extends State<PWDemo> {
                 )
               ],
             ),
-            FlatButton(
+            TextButton(
               onPressed: () {
                 if (dTc.text == '' || dbTc.text == '') return;
-                var pwHelper = PasswordEncryptHelper(password: dTc.text);
+                PasswordEncryptHelper? pwHelper = PasswordEncryptHelper(password: dTc.text);
                 final result = pwHelper.decryptWPed(dbTc.text);
                 pwHelper = null;
                 daTc.text = result ?? '--Incorrect Password--';

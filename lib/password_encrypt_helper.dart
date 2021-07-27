@@ -1,12 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
-import 'package:pointycastle/block/aes_fast.dart';
-import 'package:pointycastle/block/modes/cbc.dart';
-import 'package:pointycastle/digests/sha256.dart';
-import 'package:pointycastle/key_derivators/pbkdf2.dart';
-import 'package:pointycastle/macs/hmac.dart';
+import 'package:pointycastle/export.dart';
 import 'package:pointycastle/pointycastle.dart';
 
 const String SALT = 'app_security_salt';
@@ -15,7 +10,7 @@ const String VAL_PROTOCOL_ED = '<<<<Ed00';
 
 class PasswordEncryptHelper {
   /// Initialize helper with password
-  PasswordEncryptHelper({@required this.password});
+  PasswordEncryptHelper({required this.password});
 
   final String password;
 
@@ -31,7 +26,7 @@ class PasswordEncryptHelper {
   String encryptWPwd(String s) {
     final sList = utf8.encode('$VAL_PROTOCOL_ST$s$VAL_PROTOCOL_ED');
 
-    final encryptedList = _aesCbcEncrypt(sList);
+    final encryptedList = _aesCbcEncrypt(Uint8List.fromList(sList));
 
     final encryptedString = base64.encode(encryptedList);
 
@@ -42,12 +37,13 @@ class PasswordEncryptHelper {
   ///
   /// return decrypted [String] if password is correct
   /// return [null] if password incorrect
-  String decryptWPed(String s) {
+  String? decryptWPed(String s) {
     final sList = base64.decode(s);
 
     final decryptedList = _aesCbcDecrypt(sList);
 
-    final decryptedString = utf8.decode(decryptedList, allowMalformed: true).trim();
+    final decryptedString =
+        utf8.decode(decryptedList, allowMalformed: true).trim();
     if (!_valProtocolRegex.hasMatch(decryptedString)) return null;
 
     var contentGroup = _valProtocolRegex.allMatches(decryptedString);
@@ -64,13 +60,13 @@ class PasswordEncryptHelper {
       HMac(SHA256Digest(), 48),
     );
     Pbkdf2Parameters params = new Pbkdf2Parameters(
-      utf8.encode(SALT),
+      Uint8List.fromList(utf8.encode(SALT)),
       16,
       48,
     );
     derivator.init(params);
     var passphrase = utf8.encode(password);
-    var result = derivator.process(passphrase);
+    var result = derivator.process(Uint8List.fromList(passphrase));
     return result;
   }
 
@@ -78,14 +74,14 @@ class PasswordEncryptHelper {
   ///
   /// Get last 32 byptes from [_base]
   Uint8List _getKey() {
-    return _base?.sublist(16);
+    return _base.sublist(16);
   }
 
   /// Generate encryption [_iv]
   ///
   /// Get first 16 byptes from [_base]
   Uint8List _getIV() {
-    return _base?.sublist(0, 16);
+    return _base.sublist(0, 16);
   }
 
   /// Add space at the end of the string
@@ -96,7 +92,7 @@ class PasswordEncryptHelper {
 
     if (spaceNeeded == 16) return sList;
 
-    List<int> spaces = List(spaceNeeded);
+    List<int> spaces = [spaceNeeded];
     spaces.fillRange(0, spaceNeeded, utf8.encode(' ')[0]);
 
     List<int> tempList = sList.toList();

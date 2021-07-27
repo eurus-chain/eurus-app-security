@@ -1,9 +1,6 @@
 import 'package:app_security_kit/password_encrypt_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app_security_kit/app_security_kit.dart';
-import 'package:pointycastle/export.dart';
-
-import 'test_retrieve.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -82,13 +79,13 @@ void main() {
     test("Decrypt String correct password", () {
       PasswordEncryptHelper pwHelper =
           PasswordEncryptHelper(password: correctPW);
-      String result = pwHelper.decryptWPed(encryptedString);
+      String? result = pwHelper.decryptWPed(encryptedString);
       expect(result, dummyString);
     });
 
     test("Decrypt String wrong password", () {
       PasswordEncryptHelper pwHelper = PasswordEncryptHelper(password: wrongPW);
-      String result = pwHelper.decryptWPed(encryptedString);
+      String? result = pwHelper.decryptWPed(encryptedString);
       expect(result, null);
     });
   });
