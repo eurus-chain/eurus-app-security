@@ -92,8 +92,7 @@ class PasswordEncryptHelper {
 
     if (spaceNeeded == 16) return sList;
 
-    List<int> spaces = [spaceNeeded];
-    spaces.fillRange(0, spaceNeeded, utf8.encode(' ')[0]);
+    List<int> spaces = List.generate(spaceNeeded, utf8.encode(' ')[0]);
 
     List<int> tempList = sList.toList();
     tempList.addAll(spaces);
