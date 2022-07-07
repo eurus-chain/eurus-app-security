@@ -1,6 +1,5 @@
 import 'package:app_security_kit/app_security_kit.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:pointycastle/pointycastle.dart';
 
 class RSADemo extends StatefulWidget {

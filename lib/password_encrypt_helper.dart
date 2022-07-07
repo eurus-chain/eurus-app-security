@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import 'package:pointycastle/pointycastle.dart';
 
 const String SALT = 'app_security_salt';
 const String VAL_PROTOCOL_ST = '00St>>>>';

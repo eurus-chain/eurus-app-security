@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:app_security_kit/rsa_pem.dart';
 import 'package:pointycastle/export.dart';
-import 'package:pointycastle/pointycastle.dart';
 
 class DecryptionHelper {
   /// Initialize helper with private key
